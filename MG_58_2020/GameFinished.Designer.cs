@@ -65,7 +65,7 @@
             this.scoreGridView.RowHeadersWidth = 51;
             this.scoreGridView.RowTemplate.Height = 24;
             this.scoreGridView.RowTemplate.ReadOnly = true;
-            this.scoreGridView.Size = new System.Drawing.Size(755, 216);
+            this.scoreGridView.Size = new System.Drawing.Size(755, 311);
             this.scoreGridView.TabIndex = 1;
             // 
             // Mesto
@@ -103,6 +103,8 @@
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.scoreGridView);
             this.Controls.Add(this.label1);
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "GameFinished";
             this.Text = "Score";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.onClose);

@@ -10,6 +10,12 @@ namespace MG_58_2020
     public class MyTimer : Timer
     {
         private int counter = 0;
+
+        public string TimeString
+        {
+            get;
+            private set;
+        }
         private Label label;
         public MyTimer(Label label)
         {
@@ -35,6 +41,7 @@ namespace MG_58_2020
             if (sekunde < 10)
                 s += "0";
             s += sekunde;
+            TimeString = s;
             label.Text = s;
         }
     }

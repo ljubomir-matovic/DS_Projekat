@@ -54,6 +54,7 @@
     </Compile>
     <Compile Include="IResultsService.cs" />
     <Compile Include="IServiceFactory.cs" />
+    <Compile Include="Models\CreateScoreResult.cs" />
     <Compile Include="Models\ScoreResult.cs" />
     <Compile Include="ResultService.cs" />
     <Compile Include="ServiceFactory.cs" />

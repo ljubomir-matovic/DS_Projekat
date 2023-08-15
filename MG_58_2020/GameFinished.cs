@@ -20,7 +20,7 @@ namespace MG_58_2020
         public void FillDataGridView()
         {
             IResultsService resultsService = serviceFactory.GetResultService();
-            List<ScoreResult> results = resultsService.GetResults(form.podela, "test");
+            List<ScoreResult> results = resultsService.GetResults(form.podela, null);
             scoreGridView.Rows.Clear();
             foreach(var result in results)
             { 

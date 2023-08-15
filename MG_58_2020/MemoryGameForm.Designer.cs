@@ -227,7 +227,7 @@
             this.label3.TabIndex = 11;
             this.label3.Text = "Ime igraca";
             // 
-            // Form1
+            // MemoryGameForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -246,9 +246,10 @@
             this.Controls.Add(this.newGameButton);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
-            this.Name = "Form1";
+            this.Name = "MemoryGameForm";
             this.Text = "Memory game";
             this.Shown += new System.EventHandler(this.Form1_Shown);
+            this.ResizeEnd += new System.EventHandler(this.MemoryGameForm_ResizeEnd);
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Form1_click);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();

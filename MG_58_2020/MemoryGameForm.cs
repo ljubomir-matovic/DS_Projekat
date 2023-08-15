@@ -35,7 +35,7 @@ namespace MG_58_2020
         public Image unopenedImage;
 
         public bool gameInProgress;
-        public string uploadedImage;
+        public string uploadedImage = string.Empty;
 
         public MyTimer timer;
 
@@ -46,6 +46,8 @@ namespace MG_58_2020
         public int numberOfMoves = 0;
 
         public bool secondMove = false;
+
+        private IServiceFactory serviceFactory;
 
         public MemoryGameForm()
         {
@@ -85,6 +87,8 @@ namespace MG_58_2020
 
             loadImageButton.Visible = false;
             loadedImageLabel.Visible = false;
+
+            serviceFactory = new ServiceFactory();
         }
         public void PaintGrid(object sender,PaintEventArgs e)
         {
@@ -229,6 +233,13 @@ namespace MG_58_2020
             Invalidate();
         }
 
+        private void MemoryGameForm_ResizeEnd(object sender, EventArgs e)
+        {
+            this.Paint += PaintImages;
+            this.Paint += PaintGrid;
+            this.Invalidate();
+        }
+
         private void Form1_Shown(object sender, EventArgs e)
         {
             this.Paint += PaintImages;
@@ -308,6 +319,17 @@ namespace MG_58_2020
             if(gameController.GameFinished)
             {
                 this.timer.Stop();
+
+                var resultService = serviceFactory.GetResultService();
+                resultService.InsertNewResult(new CreateScoreResult
+                {
+                    BrojPoteza = numberOfMoves,
+                    Ime = ImeIgraca,
+                    Slika = uploadedImage,
+                    Vreme = "00:" + timer.TimeString,
+                    Podela = podela
+                });
+
                 GameFinished gameFinished = new GameFinished();
                 gameFinished.form = this;
                 gameFinished.FillDataGridView();
@@ -318,13 +340,21 @@ namespace MG_58_2020
         private void newGameButton_Click(object sender, EventArgs e)
         {
             /*
+            serviceFactory.GetResultService().InsertNewResult(new CreateScoreResult
+            {
+                BrojPoteza = numberOfMoves,
+                Ime = "Mika",
+                Slika = "",
+                Vreme = "00:" + "00:45",
+                Podela = "3x3x2"
+            });
             GameFinished gameFinished = new GameFinished();
             gameFinished.form = this;
             gameFinished.FillDataGridView();
             gameFinished.StartPosition = FormStartPosition.CenterParent;
             gameFinished.ShowDialog();
             if (1 == 1)
-                return; */
+                return;*/
             if (images == null)
                 return;
             if (imeIgracaTextBox.Text.Length < 3)
@@ -357,7 +387,7 @@ namespace MG_58_2020
                 loadedImageLabel.Text = Path.GetFileName(fileDialog.FileName);
                 dividedImage = DivideImage(fileDialog.FileName, numberOfFieldsX/2, numberOfFieldsY);
                 images = dividedImage;
-                uploadedImage=fileDialog.FileName;
+                uploadedImage=Path.GetFileName(fileDialog.FileName);
                 this.Paint += PaintImages;
                 this.Paint += PaintGrid;
                 Invalidate();
