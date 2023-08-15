@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace MG_58_2020
 {
-    public partial class Alert1 : Form
+    public partial class UserNameRequired : Form
     {
-        public Alert1()
+        public UserNameRequired()
         {
             InitializeComponent();
         }

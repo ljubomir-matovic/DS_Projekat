@@ -1,29 +1,32 @@
-﻿using System;
+﻿using MG_58_2020.Models;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Security.Policy;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using MG_58_2020.Models;
 
 namespace MG_58_2020
 {
-    public partial class Form1 : Form
+    public partial class MemoryGameForm : Form
     {
-        
-
         // Udaljenost mreze od okvira prozora
         public int leftDistance, rightDistance, topDistance, bottomDistance;
         public int lineWidth;
         public int fieldWidth,fieldHeight;
         public int numberOfFieldsX,numberOfFieldsY;
         public Pen pen;
+
+        public string podela;
+
+        public string ImeIgraca
+        {
+            get
+            {
+                return imeIgracaTextBox.Text;
+            }
+        }
 
         // Slike
         public List<Image> images;
@@ -42,7 +45,9 @@ namespace MG_58_2020
 
         public int numberOfMoves = 0;
 
-        public Form1()
+        public bool secondMove = false;
+
+        public MemoryGameForm()
         {
             InitializeComponent();
 
@@ -72,6 +77,7 @@ namespace MG_58_2020
             gameInProgress = false;
 
             radioButton332.Checked = true;
+            podela = "3x3x2";
             radioButtonIkonice.Checked = true;
             timer = new MyTimer(timerLabel);
 
@@ -197,6 +203,7 @@ namespace MG_58_2020
             CalculateFieldDimensions();
             this.Paint += PaintImages;
             this.Paint+=PaintGrid;
+            podela = "3x3x3";
             Invalidate();
         }
 
@@ -207,6 +214,7 @@ namespace MG_58_2020
             CalculateFieldDimensions();
             this.Paint += PaintImages;
             this.Paint += PaintGrid;
+            podela = "3x4x2";
             Invalidate();
         }
 
@@ -217,6 +225,7 @@ namespace MG_58_2020
             CalculateFieldDimensions();
             this.Paint += PaintImages;
             this.Paint += PaintGrid;
+            podela = "4x4x2";
             Invalidate();
         }
 
@@ -233,14 +242,14 @@ namespace MG_58_2020
             if (!gameInProgress)
                 return;
             Point location = e.Location;
-            if (location.X < leftDistance + 1 || location.X > (numberOfFieldsX+1) * lineWidth + numberOfFieldsX * fieldWidth)
+            if (location.X < leftDistance + 1 || location.X > (numberOfFieldsX + 1) * lineWidth + numberOfFieldsX * fieldWidth)
                 return;
-            if (location.Y < topDistance + 1 || location.Y > (numberOfFieldsY+1) * lineWidth + numberOfFieldsY * fieldHeight)
+            if (location.Y < topDistance + 1 || location.Y > (numberOfFieldsY + 1) * lineWidth + numberOfFieldsY * fieldHeight)
                 return;
             double XinTable = location.X - leftDistance;
-            int x = (int)Math.Floor(XinTable / (fieldWidth+lineWidth));
+            int x = (int)Math.Floor(XinTable / (fieldWidth + lineWidth));
             double YinTable = location.Y - topDistance;
-            int y = (int)Math.Floor(YinTable / (fieldHeight+lineWidth));
+            int y = (int)Math.Floor(YinTable / (fieldHeight + lineWidth));
 
             GameControllerResponse response = gameController.playMove(x, y);
             switch (response.responseType)
@@ -259,12 +268,12 @@ namespace MG_58_2020
                     Task.Run(async () =>
                     {
                         await Task.Delay(TimeSpan.FromSeconds(0.5));
-                        cardToDraw = (Card) response.card1.Clone();
+                        cardToDraw = (Card)response.card1.Clone();
                         cardToDraw.Opened = false;
                         this.Paint += PaintCard;
                         Invalidate(GetRectangle(cardToDraw.x, cardToDraw.y));
                         await Task.Delay(TimeSpan.FromMilliseconds(1));
-                        cardToDraw = (Card) response.card2.Clone();
+                        cardToDraw = (Card)response.card2.Clone();
                         cardToDraw.Opened = false;
                         this.Paint += PaintCard;
                         Invalidate(GetRectangle(cardToDraw.x, cardToDraw.y));
@@ -284,20 +293,43 @@ namespace MG_58_2020
 
             PlaySound();
 
-            this.movesLabel.Text = (++this.numberOfMoves).ToString(); 
+            if (secondMove)
+            {
+                ++this.numberOfMoves;
+                secondMove = false;
+            }
+            else
+            {
+                secondMove = true;
+            }
+
+            this.movesLabel.Text = this.numberOfMoves.ToString(); 
 
             if(gameController.GameFinished)
             {
                 this.timer.Stop();
+                GameFinished gameFinished = new GameFinished();
+                gameFinished.form = this;
+                gameFinished.FillDataGridView();
+                gameFinished.StartPosition = FormStartPosition.CenterParent;
+                gameFinished.ShowDialog();
             }
         }
         private void newGameButton_Click(object sender, EventArgs e)
         {
+            /*
+            GameFinished gameFinished = new GameFinished();
+            gameFinished.form = this;
+            gameFinished.FillDataGridView();
+            gameFinished.StartPosition = FormStartPosition.CenterParent;
+            gameFinished.ShowDialog();
+            if (1 == 1)
+                return; */
             if (images == null)
                 return;
             if (imeIgracaTextBox.Text.Length < 3)
             {
-                Form popUpForm = new Alert1();
+                Form popUpForm = new UserNameRequired();
                 popUpForm.Text = "Obavestenje";
                 popUpForm.StartPosition = FormStartPosition.CenterScreen;
                 popUpForm.ShowDialog();
@@ -338,14 +370,6 @@ namespace MG_58_2020
             radioButtonIkonice.Enabled = radioButtonMojaSlika.Enabled = b;
             loadImageButton.Enabled = b;
             imeIgracaTextBox.Enabled = b;
-        }
-        public void OpenModal()
-        {
-            Form popUpForm = new Form();
-            popUpForm.Text = "Scores";
-            popUpForm.Size = new Size(300, 200);
-            popUpForm.StartPosition = FormStartPosition.CenterScreen;
-            popUpForm.ShowDialog();
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace MG_58_2020
 {
-    partial class Alert1
+    partial class UserNameRequired
     {
         /// <summary>
         /// Required designer variable.
@@ -67,7 +67,7 @@
             this.button2.UseVisualStyleBackColor = false;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
-            // Alert1
+            // UserNameRequired
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -78,8 +78,8 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Name = "Alert1";
-            this.Text = "Alert1";
+            this.Name = "UserNameRequired";
+            this.Text = "Alert";
             this.ResumeLayout(false);
 
         }

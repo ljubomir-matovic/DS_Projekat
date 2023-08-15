@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace MG_58_2020
 {
-    public partial class Form1
+    public partial class MemoryGameForm
     {
         // Vraca apsolutnu putanju na osnovu relativne putanje
         public string RelativePath(string putanja)

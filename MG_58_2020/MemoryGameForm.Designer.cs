@@ -1,6 +1,6 @@
 ﻿namespace MG_58_2020
 {
-    partial class Form1
+    partial class MemoryGameForm
     {
         /// <summary>
         /// Required designer variable.
