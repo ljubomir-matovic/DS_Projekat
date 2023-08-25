@@ -9,7 +9,7 @@ namespace MG_58_2020
 
         public int Width { get;private set; }
         public int Height { get; private set; }
-        private int pogodjeno;
+        public int pogodjeno;
         public Field[,] fields { get; private set; }
         private Card firstMove;
         private Card secondMove;
@@ -80,9 +80,34 @@ namespace MG_58_2020
             secondMove = null;
         }
 
-        public void undo(GameControllerResponse response)
+        public void Assign(Field[,] newFields)
         {
+            for (int i = 0; i < Height; i++)
+                for (int j = 0; j < Width; j++)
+                {
+                    fields[i, j] = (Field)newFields[i, j].Clone();
+                }
+        }
 
+        public void Restore(IMemento memento)
+        {
+            Assign(memento.fields);
+
+            GameControllerResponse response = memento.response;
+
+            pogodjeno = memento.pogodjeno;
+
+            switch (response.responseType)
+            {
+                case ResponseType.OPENED_ONE:
+                    firstMove = (Card) response.card1.Clone();
+                    secondMove = null;
+                    break;
+                case ResponseType.RIGHT_GUESS:
+                    firstMove = null;
+                    secondMove = null;
+                    break;
+            }
         }
 
         public bool GameFinished

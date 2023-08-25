@@ -45,6 +45,8 @@
             this.finishGameButton = new System.Windows.Forms.Button();
             this.imeIgracaTextBox = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
+            this.undoButton = new System.Windows.Forms.Button();
+            this.redoButton = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
@@ -227,11 +229,33 @@
             this.label3.TabIndex = 11;
             this.label3.Text = "Ime igraca";
             // 
+            // undoButton
+            // 
+            this.undoButton.Location = new System.Drawing.Point(1124, 627);
+            this.undoButton.Name = "undoButton";
+            this.undoButton.Size = new System.Drawing.Size(75, 23);
+            this.undoButton.TabIndex = 12;
+            this.undoButton.Text = "Undo";
+            this.undoButton.UseVisualStyleBackColor = true;
+            this.undoButton.Click += new System.EventHandler(this.undoButton_Click);
+            // 
+            // redoButton
+            // 
+            this.redoButton.Location = new System.Drawing.Point(1210, 627);
+            this.redoButton.Name = "redoButton";
+            this.redoButton.Size = new System.Drawing.Size(60, 23);
+            this.redoButton.TabIndex = 13;
+            this.redoButton.Text = "Redo";
+            this.redoButton.UseVisualStyleBackColor = true;
+            this.redoButton.Click += new System.EventHandler(this.redoButton_Click);
+            // 
             // MemoryGameForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1282, 753);
+            this.Controls.Add(this.redoButton);
+            this.Controls.Add(this.undoButton);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.imeIgracaTextBox);
             this.Controls.Add(this.finishGameButton);
@@ -279,6 +303,8 @@
         private System.Windows.Forms.Button finishGameButton;
         private System.Windows.Forms.TextBox imeIgracaTextBox;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Button undoButton;
+        private System.Windows.Forms.Button redoButton;
     }
 }
 

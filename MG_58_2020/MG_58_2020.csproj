@@ -46,14 +46,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Caretaker.cs" />
     <Compile Include="GameFinished.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="GameFinished.Designer.cs">
       <DependentUpon>GameFinished.cs</DependentUpon>
     </Compile>
+    <Compile Include="IMemento.cs" />
     <Compile Include="IResultsService.cs" />
     <Compile Include="IServiceFactory.cs" />
+    <Compile Include="ConcreteMemento.cs" />
     <Compile Include="Models\CreateScoreResult.cs" />
     <Compile Include="Models\ScoreResult.cs" />
     <Compile Include="ResultService.cs" />

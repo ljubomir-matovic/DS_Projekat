@@ -3,9 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Reflection;
 using System.Security.Policy;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
 
 namespace MG_58_2020
 {
@@ -14,9 +16,11 @@ namespace MG_58_2020
         // Udaljenost mreze od okvira prozora
         public int leftDistance, rightDistance, topDistance, bottomDistance;
         public int lineWidth;
-        public int fieldWidth,fieldHeight;
-        public int numberOfFieldsX,numberOfFieldsY;
+        public int fieldWidth, fieldHeight;
+        public int numberOfFieldsX, numberOfFieldsY;
         public Pen pen;
+
+        public bool firstMoveInGame;
 
         public string podela;
 
@@ -49,6 +53,9 @@ namespace MG_58_2020
 
         private IServiceFactory serviceFactory;
 
+        private Caretaker caretaker;
+        private GameControllerResponse response;
+
         public MemoryGameForm()
         {
             InitializeComponent();
@@ -59,7 +66,7 @@ namespace MG_58_2020
 
             lineWidth = 1;
 
-            leftDistance = (int)Math.Round(screenWidth*0.03); // 3%
+            leftDistance = (int)Math.Round(screenWidth * 0.03); // 3%
             rightDistance = (int)Math.Round(screenWidth * 0.15); // 15%
             topDistance = (int)Math.Round(screenHeight * 0.03); // 3%
             bottomDistance = (int)Math.Round(screenHeight * 0.03); // 3%
@@ -69,8 +76,8 @@ namespace MG_58_2020
 
             CalculateFieldDimensions();
 
-            Color color=Color.FromArgb(255,0,0,0);
-            pen = new Pen(color,lineWidth);
+            Color color = Color.FromArgb(255, 0, 0, 0);
+            pen = new Pen(color, lineWidth);
 
             LoadIcons();
             images = icons;
@@ -83,14 +90,18 @@ namespace MG_58_2020
             radioButtonIkonice.Checked = true;
             timer = new MyTimer(timerLabel);
 
-            unopenedImage= Image.FromFile(RelativePath(Path.Combine(Program.ResourcesFolder, "Neotvoreno.bmp")));
+            unopenedImage = Image.FromFile(RelativePath(Path.Combine(Program.ResourcesFolder, "Neotvoreno.bmp")));
 
             loadImageButton.Visible = false;
             loadedImageLabel.Visible = false;
 
             serviceFactory = new ServiceFactory();
+            undoButton.Enabled = false;
+            redoButton.Enabled = false;
+
+            caretaker = new Caretaker(this);
         }
-        public void PaintGrid(object sender,PaintEventArgs e)
+        public void PaintGrid(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
 
@@ -105,7 +116,7 @@ namespace MG_58_2020
                 }
                 dY += fieldHeight;
             }
-            this.Paint-= PaintGrid;
+            this.Paint -= PaintGrid;
         }
 
         public void PaintImages(object sender, PaintEventArgs e)
@@ -113,17 +124,17 @@ namespace MG_58_2020
             Graphics g = e.Graphics;
             if (images == null)
                 return;
-            int dX, dY = topDistance+lineWidth-1;
+            int dX, dY = topDistance + lineWidth - 1;
             for (int i = 0; i < numberOfFieldsY; i++)
             {
-                dX = leftDistance+lineWidth-1;
+                dX = leftDistance + lineWidth - 1;
                 for (int j = 0; j < numberOfFieldsX; j++)
                 {
                     int jCalculated = j;
                     if (j >= numberOfFieldsX / 2)
                         jCalculated = j - numberOfFieldsX / 2;
-                    int index = i * numberOfFieldsX/2 + jCalculated;
-                    g.DrawImage(images[index], dX, dY, fieldWidth-lineWidth, fieldHeight-lineWidth);
+                    int index = i * numberOfFieldsX / 2 + jCalculated;
+                    g.DrawImage(images[index], dX, dY, fieldWidth - lineWidth, fieldHeight - lineWidth);
                     dX += fieldWidth;
                 }
                 dY += fieldHeight;
@@ -171,11 +182,47 @@ namespace MG_58_2020
             this.Paint -= PaintNeotvoreno;
         }
 
-        public void PaintCard(object sender,PaintEventArgs e)
+        public void PaintCards(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            if (images == null)
+                return;
+            Image image;
+            bool opened;
+            int dX, dY = topDistance + lineWidth - 1;
+            for (int i = 0; i < numberOfFieldsY; i++)
+            {
+                dX = leftDistance + lineWidth - 1;
+                for (int j = 0; j < numberOfFieldsX; j++)
+                {
+                    int jCalculated = j;
+                    if (j >= numberOfFieldsX / 2)
+                        jCalculated = j - numberOfFieldsX / 2;
+                    opened = gameController.fields[i, j].Opened;
+                    if (opened)
+                    {
+                        int index = gameController.fields[i, j].ImageIndex;
+                        image = images[index];
+                    }
+                    else
+                    {
+                        image = unopenedImage;
+                    }
+                    
+                    g.DrawImage(image, dX, dY, fieldWidth - lineWidth, fieldHeight - lineWidth);
+                    dX += fieldWidth;
+                }
+                dY += fieldHeight;
+            }
+
+            this.Paint -= PaintCards;
+        }
+
+        public void PaintCard(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
             int dX, dY;
-            dX = leftDistance + cardToDraw.x * (fieldWidth ) + lineWidth;
+            dX = leftDistance + cardToDraw.x * (fieldWidth) + lineWidth;
             dY = topDistance + cardToDraw.y * (fieldHeight) + lineWidth;
             Image image;
             if (cardToDraw.Opened)
@@ -206,7 +253,7 @@ namespace MG_58_2020
             numberOfFieldsY = 3;
             CalculateFieldDimensions();
             this.Paint += PaintImages;
-            this.Paint+=PaintGrid;
+            this.Paint += PaintGrid;
             podela = "3x3x3";
             Invalidate();
         }
@@ -240,6 +287,46 @@ namespace MG_58_2020
             this.Invalidate();
         }
 
+        private void undoButton_Click(object sender, EventArgs e)
+        {
+            caretaker.Undo();
+            undoButton.Enabled = caretaker.CanUndo;
+            redoButton.Enabled = caretaker.CanRedo;
+        }
+
+        private void redoButton_Click(object sender, EventArgs e)
+        {
+            caretaker.Redo();
+            undoButton.Enabled = caretaker.CanUndo;
+            redoButton.Enabled = caretaker.CanRedo;
+        }
+
+        public IMemento Save()
+        {
+            Field[,] fields = new Field[gameController.Height, gameController.Width];
+            for (int i = 0; i < gameController.Height; i++)
+                for (int j = 0; j < gameController.Width; j++)
+                {
+                    fields[i, j] = (Field)gameController.fields[i, j].Clone();
+                }
+
+            return new ConcreteMemento
+            {
+                fields = fields,
+                response = this.response,
+                pogodjeno = gameController.pogodjeno
+            };
+        }
+
+        public void Restore(IMemento memento)
+        {
+            gameController.Restore(memento);
+            this.Paint += PaintCards;
+            this.Paint += PaintGrid;
+            Invalidate();
+            Refresh();
+        }
+
         private void Form1_Shown(object sender, EventArgs e)
         {
             this.Paint += PaintImages;
@@ -262,7 +349,7 @@ namespace MG_58_2020
             double YinTable = location.Y - topDistance;
             int y = (int)Math.Floor(YinTable / (fieldHeight + lineWidth));
 
-            GameControllerResponse response = gameController.playMove(x, y);
+            response = gameController.playMove(x, y);
             switch (response.responseType)
             {
                 case ResponseType.ALREADY_OPENED:
@@ -270,7 +357,20 @@ namespace MG_58_2020
                 case ResponseType.OPENED_ONE:
                     cardToDraw = response.card1;
                     this.Paint += PaintCard;
-                    Invalidate(GetRectangle(x, y));
+                    if(firstMoveInGame)
+                    {
+                        firstMoveInGame = false;
+                        this.Paint += PaintCards;
+                        this.Paint += PaintGrid;
+                        Invalidate();
+                        Refresh();
+                    }
+                    else
+                    {
+                        Invalidate(GetRectangle(x, y));
+                    }
+                    
+                    caretaker.Backup();
                     break;
                 case ResponseType.WRONG_GUESS:
                     cardToDraw = response.card2;
@@ -293,6 +393,7 @@ namespace MG_58_2020
                     });
                     break;
                 case ResponseType.RIGHT_GUESS:
+                    caretaker.Backup();
                     cardToDraw = response.card2;
                     this.Paint += PaintCard;
                     Invalidate(GetRectangle(x, y));
@@ -301,6 +402,8 @@ namespace MG_58_2020
                 default:
                     return;
             }
+
+            undoButton.Enabled = true;
 
             PlaySound();
 
@@ -333,28 +436,24 @@ namespace MG_58_2020
                 GameFinished gameFinished = new GameFinished();
                 gameFinished.form = this;
                 gameFinished.FillDataGridView();
-                gameFinished.StartPosition = FormStartPosition.CenterParent;
+                gameFinished.StartPosition = FormStartPosition.CenterScreen;
+                gameFinished.FormBorderStyle = FormBorderStyle.FixedDialog;
                 gameFinished.ShowDialog();
+
+                this.Paint += PaintCards;
+                this.Paint += PaintGrid;
+                Invalidate();
+                Refresh();
+
+                undoButton.Enabled = false;
+                redoButton.Enabled = false;
+                caretaker.Reset();
             }
         }
+
+
         private void newGameButton_Click(object sender, EventArgs e)
         {
-            /*
-            serviceFactory.GetResultService().InsertNewResult(new CreateScoreResult
-            {
-                BrojPoteza = numberOfMoves,
-                Ime = "Mika",
-                Slika = "",
-                Vreme = "00:" + "00:45",
-                Podela = "3x3x2"
-            });
-            GameFinished gameFinished = new GameFinished();
-            gameFinished.form = this;
-            gameFinished.FillDataGridView();
-            gameFinished.StartPosition = FormStartPosition.CenterParent;
-            gameFinished.ShowDialog();
-            if (1 == 1)
-                return;*/
             if (images == null)
                 return;
             if (imeIgracaTextBox.Text.Length < 3)
@@ -375,6 +474,8 @@ namespace MG_58_2020
             this.Paint += PaintGrid;
             this.Paint += PaintNeotvoreno;
             Invalidate();
+
+            firstMoveInGame = true;
         }
         private void loadImageButton_Click(object sender, EventArgs e)
         {
